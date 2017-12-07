@@ -1,0 +1,37 @@
+<launch>
+
+<remap from="/cmd_vel_mux/input/teleop" to="/mobile_base/commands/velocity"/>
+  <include file="$(find simple_turtlebot)/launch/simple_turtlebot.launch">
+    <arg name="world" default="$(find sensor_training_result)/saywhat"/>
+    <arg name="xacro_file" default="$(find sensor_training_result)/urdf/simple_turtlebot.urdf.xacro"/>
+  </include>
+  <include file="$(find turtlebot_teleop)/launch/keyboard_teleop.launch">
+  </include>
+  
+  <include file="$(find sensor_training)/launch/control.launch">
+  </include>
+  
+  <node name="laser_command" pkg="sensor_training_result" type="laser_command.py">
+    <param name="speed" value="1"/>
+    <remap from="laser_command_topic" to="/laser_velocity_controller/command"/>
+  </node>
+
+  <node name="camera_lidar" pkg="sensor_training" type="camera_lidar.py">
+    <remap from="scan" to="/rrbot/laser/scan"/>
+    <remap from="camera/camera_info" to="/rrbot/camera1/camera_info"/>
+    <remap from="camera/image_raw" to="/rrbot/camera1/image_raw"/>
+  </node>
+
+  <node pkg="laser_assembler" name="point_cloud_assembler" type="point_cloud_assembler"> 
+    <remap from="cloud" to="/cloud"/>
+    <param name="max_scans" type="int" value="800" />
+    <param name="fixed_frame" type="string" value="base_link" /> 
+
+  </node>
+
+  <node pkg="sensor_training_result" name="assembler" type="assembler.py"> 
+
+  </node>
+  <node pkg="rviz" name="rviz" type="rviz" args="-d $(find sensor_training_result)/launch/rviz_config.rviz">
+  </node>
+</launch>  
